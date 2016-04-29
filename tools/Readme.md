@@ -88,3 +88,18 @@ Original FILE\_XSL can be found in $Mediaconch/MetadataDevelopment/Displays/HTML
 ```
 
 Original FILE\_XSL can be found in $Mediaconch/MetadataDevelopment/Displays/TextOutput/MediaTraceText.xsl
+
+
+## CSV videos information to C++ map structure
+
+### Compilation
+
+On Linux and Mac: use g++ csv\_video.cpp -o csv\_video
+
+On Windows: :)
+
+### Params
+
+* First: CSV file
+* Second: file to save the output (for instance, GeneratedCSVVideos.hpp)
+* Third: the fields wanted to be written, separated by comma (for instance, "Format,Format_Settings,BitRate")
