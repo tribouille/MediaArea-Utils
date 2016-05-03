@@ -94,12 +94,21 @@ Original FILE\_XSL can be found in $Mediaconch/MetadataDevelopment/Displays/Text
 
 ### Compilation
 
-On Linux and Mac: use g++ csv\_video.cpp -o csv\_video
+On Linux and Mac: use g++ csv\_video.cpp input_csv\_video.cpp output_csv\_video.cpp content_csv\_video.cpp -o csv\_video -I. -I $PATH_TO_ZENLIB_INCLUDE -l $PATH_TO_ZENLIB.a
 
 On Windows: :)
 
 ### Params
 
-* First: CSV file
-* Second: file to save the output (for instance, GeneratedCSVVideos.hpp)
-* Third: the fields wanted to be written, separated by comma (for instance, "Format,Format_Settings,BitRate")
+* --csv-dir=DIRECTORY_PATH: Path to the CSV files
+* --in-general=FILE: Path to a general CSV file
+* --in-video=FILE: Path to a video CSV file
+* --in-audio=FILE: Path to a audio CSV file
+* --in-text=FILE: Path to a text CSV file
+* --in-other=FILE: Path to a other CSV file
+* --in-image=FILE: Path to a image CSV file
+* --in-menu=FILE: Path to a menu CSV file
+* --out=FILE: file to save the output (for instance, GeneratedCSVVideos.hpp)
+* --fields=FIELDS: the fields wanted to be written, separated by comma (for instance, "Format,Format_Settings,BitRate")
+
+Note: the input files are accumulated
