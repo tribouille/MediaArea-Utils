@@ -11,6 +11,14 @@
 #include <map>
 #include <vector>
 
+struct InputCSVVideo_Field
+{
+    ZenLib::Ztring field;
+    ZenLib::Ztring filter;
+    ZenLib::Ztring method;
+    ZenLib::Ztring list;
+};
+
 class InputCSVVideo
 {
 public:
@@ -20,13 +28,13 @@ public:
     int parse(int argc, char* argv[]);
 
     ZenLib::Ztring get_output() const { return out_filename; }
-    const std::map<ZenLib::Ztring, std::vector<ZenLib::Ztring> >& get_inputs() const { return in_filenames; }
-    const std::vector<ZenLib::Ztring>& get_fields_wanted() const { return fields; }
+    ZenLib::Ztring get_stats_filename(const ZenLib::Ztring& type) { if (stats_filenames.find(type) != stats_filenames.end()) return stats_filenames.find(type)->second; return ZenLib::Ztring(); }
+    const std::map<ZenLib::Ztring, std::vector<InputCSVVideo_Field*> >& get_fields_wanted() const { return fields; }
 
 private:
     ZenLib::Ztring out_filename;
-    std::map<ZenLib::Ztring, std::vector<ZenLib::Ztring> > in_filenames;
-    std::vector<ZenLib::Ztring> fields;
+    std::map<ZenLib::Ztring, ZenLib::Ztring>                     stats_filenames;
+    std::map<ZenLib::Ztring, std::vector<InputCSVVideo_Field*> > fields;
 
     int usage();
     int parse_in_csv_dir(const ZenLib::Ztring& arg);
@@ -38,7 +46,8 @@ private:
     int parse_in_Image(const ZenLib::Ztring& arg);
     int parse_in_Menu(const ZenLib::Ztring& arg);
     int parse_out_file(const ZenLib::Ztring& arg);
-    int parse_fields(const ZenLib::Ztring& arg);
+
+    int parse_csv_fields(const ZenLib::Ztring& type, const ZenLib::Ztring& filename);
 
     InputCSVVideo(const InputCSVVideo&);
     InputCSVVideo& operator=(const InputCSVVideo&);

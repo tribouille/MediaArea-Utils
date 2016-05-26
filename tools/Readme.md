@@ -100,7 +100,7 @@ On Windows: :)
 
 ### Params
 
-* --csv-dir=DIRECTORY_PATH: Path to the CSV files
+* --csv-dir=DIRECTORY_PATH: Path to the CSV stats files
 * --in-general=FILE: Path to a general CSV file
 * --in-video=FILE: Path to a video CSV file
 * --in-audio=FILE: Path to a audio CSV file
@@ -109,6 +109,5 @@ On Windows: :)
 * --in-image=FILE: Path to a image CSV file
 * --in-menu=FILE: Path to a menu CSV file
 * --out=FILE: file to save the output (for instance, GeneratedCSVVideos.hpp)
-* --fields=FIELDS: the fields wanted to be written, separated by comma (for instance, "Format,Format_Settings,BitRate")
 
-Note: the input files are accumulated
+Note: the input files are not accumulated

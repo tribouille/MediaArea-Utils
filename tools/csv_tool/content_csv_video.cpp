@@ -4,6 +4,7 @@
  *  be found in the License.html file in the root of the source tree.
  */
 
+#include "input_csv_video.h"
 #include "output_csv_video.h"
 #include "content_csv_video.h"
 #include <iostream>
@@ -48,19 +49,22 @@ int ContentCSVVideo::get_lines_columns(size_t& lines, size_t& columns)
     return 0;
 }
 
-bool ContentCSVVideo::field_is_wanted(const ZenLib::Ztring& field)
+bool ContentCSVVideo::field_is_wanted(const ZenLib::Ztring& method, const ZenLib::Ztring& field, ZenLib::Ztring& filter)
 {
-    // if fields wanted is empty, means all fields
+    // if fields wanted is empty
     if (!fields_wanted.size())
-        return true;
+        return false;
 
     for (size_t i = 0; i < fields_wanted.size(); ++i)
-        if (fields_wanted[i] == field)
+        if (fields_wanted[i]->method == method && fields_wanted[i]->field == field)
+        {
+            filter = fields_wanted[i]->filter;
             return true;
+        }
     return false;
 }
 
-int ContentCSVVideo::create_map_for_doubles(const ZenLib::Ztring& type)
+int ContentCSVVideo::create_map_for_doubles()
 {
     size_t lines, columns;
     if (get_lines_columns(lines, columns))
@@ -68,18 +72,19 @@ int ContentCSVVideo::create_map_for_doubles(const ZenLib::Ztring& type)
 
     for (size_t i = 0; i < columns; ++i)
     {
-        if (i >= list[0].size() || !list[0][i].length() || !field_is_wanted(list[0][i]))
+        ZenLib::Ztring filter;
+        if (i >= list[0].size() || !list[0][i].length() || !field_is_wanted(__T("FromStats"), list[0][i], filter))
             continue;
 
-        std::map<ZenLib::Ztring, bool> internal_values;
+        std::map<ZenLib::Ztring, ZenLib::Ztring> internal_values;
         // j == 0 is the field name
         for (size_t j = 1; j < lines; ++j)
         {
             if (j >= list.size() || i >= list[j].size() || !list[j][i].length())
                 continue;
-            internal_values[list[j][i]] = true;
+            internal_values[list[j][i]] = filter;
         }
-        output.register_values(type, list[0][i], internal_values);
+        output.register_values(list[0][i], internal_values);
     }
     return 0;
 }
@@ -92,19 +97,52 @@ int ContentCSVVideo::get_list()
     list.Write(content);
 }
 
-int ContentCSVVideo::parse(const ZenLib::Ztring& filename, const ZenLib::Ztring& type)
+int ContentCSVVideo::parse_stats(const ZenLib::Ztring& filename)
 {
+    if (!fields_wanted.size())
+        return 0;
+
     if (get_content(filename) < 0)
         return 1;
 
     if (get_list() < 0)
         return 1;
 
-    if (create_map_for_doubles(type) < 0)
+    if (create_map_for_doubles() < 0)
         return 1;
+    return 0;
 }
 
-void ContentCSVVideo::set_fields_wanted(const std::vector<ZenLib::Ztring>& fields)
+int ContentCSVVideo::parse_list()
+{
+    if (!fields_wanted.size())
+        return 0;
+
+    for (size_t i = 0; i < fields_wanted.size(); ++i)
+    {
+        if (fields_wanted[i]->method == __T("FromList") && fields_wanted[i]->list.length())
+        {
+            ZenLib::ZtringList tmp;
+            tmp.Separator_Set(0, __T(" / "));
+            tmp.Write(fields_wanted[i]->list);
+            std::map<ZenLib::Ztring, ZenLib::Ztring> internal_values;
+            for (size_t j = 0; j < tmp.size(); ++j)
+                internal_values[tmp[j]] = fields_wanted[i]->filter;
+            output.register_values(fields_wanted[i]->field, internal_values);
+        }
+    }
+    return 0;
+}
+
+int ContentCSVVideo::parse_source()
+{
+    if (!fields_wanted.size())
+        return 0;
+
+    return 0;
+}
+
+void ContentCSVVideo::set_fields_wanted(const std::vector<InputCSVVideo_Field*>& fields)
 {
     fields_wanted = fields;
 }

@@ -21,17 +21,49 @@ int main(int argc, char* argv[])
     if (input.parse(argc, argv) < 0)
         return 1;
 
-    ContentCSVVideo content(output);
+    // std::map<ZenLib::Ztring, std::vector<InputCSVVideo_Field*> >::const_iterator it = fields.begin();
+    // for (; it != fields.end(); ++it)
+    // {
+    //     std::wcout << it->first << __T(": ")<< std::endl;
+    //     for (size_t i = 0; i < it->second.size(); ++i)
+    //     {
+    //         std::wcout << __T("\t") << it->second[i]->field <<  __T("\t")  << it->second[i]->filter <<  __T("\t")  << it->second[i]->method <<  __T("\t")  << it->second[i]->list;
+    //         std::wcout << std::endl;
+    //     }
+    // }
 
-    content.set_fields_wanted(input.get_fields_wanted());
-
-    const std::map<ZenLib::Ztring, std::vector<ZenLib::Ztring> >& in = input.get_inputs();
-    std::map<ZenLib::Ztring, std::vector<ZenLib::Ztring> >::const_iterator it = in.begin();
-    for (; it != in.end(); ++it)
+    ZenLib::Ztring existing_types[] =
     {
-        for (size_t i = 0; i < it->second.size(); ++i)
-            if (content.parse(it->second[i], it->first) < 0)
-                return 1;
+        __T("General"),
+        __T("Video"),
+        __T("Audio"),
+        __T("Text"),
+        __T("Other"),
+        __T("Image"),
+        __T("Menu")
+    };
+
+    const std::map<ZenLib::Ztring, std::vector<InputCSVVideo_Field*> >& types = input.get_fields_wanted();
+    for (size_t i = 0; i < (sizeof(existing_types) / sizeof(*existing_types)); ++i)
+    {
+        std::map<ZenLib::Ztring, std::vector<InputCSVVideo_Field*> >::const_iterator current_type = types.find(existing_types[i]);
+        if (current_type == types.end())
+            continue;
+        output.set_current_type(existing_types[i]);
+        ContentCSVVideo content(output);
+
+        if (!current_type->second.size())
+            continue;
+
+        content.set_fields_wanted(current_type->second);
+
+        const ZenLib::Ztring& stats_filename = input.get_stats_filename(existing_types[i]);
+        if (stats_filename.length() && content.parse_stats(stats_filename) < 0)
+            return 1;
+        if (content.parse_list() < 0)
+            return 1;
+        if (content.parse_source() < 0)
+            return 1;
     }
 
     if (output.open_file(input.get_output()) < 0)
