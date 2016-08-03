@@ -11,11 +11,17 @@ test_with_curl()
         echo "$ANSWER"
         exit 1;
     fi;
+    ANSWER=
 }
 
 test_with_curl_data()
 {
     ANSWER=`curl -s -X POST -H "Content-Type: application/json" -d "$2" "$1"`
+    if test $? -ne 0; then
+        echo "command $1 failed"
+        exit 1;
+    fi;
+
     ./validate_json.py "$ANSWER" "$3"
     if test $? -eq 0; then
         echo "$4";
@@ -24,6 +30,7 @@ test_with_curl_data()
         echo "$ANSWER"
         exit 1;
     fi;
+    ANSWER=
 }
 
 #create XSLT policy (X2)
@@ -50,3 +57,20 @@ test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLIC
 test_with_curl "http://0.0.0.0:4242/1.7/policy_clear_policies" '{"POLICY_CLEAR_POLICIES_RESULT": {}}' "pass clear policies"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": []}}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_count" '{"POLICY_GET_POLICIES_COUNT_RESULT": {"size": 0}}' "pass get policies count"
+
+JSON_DATA=`cat ./data/sample_policy_1.xml | sed 's/"/\\\\"/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n//g'`
+
+#import and remove
+test_with_curl_data "http://0.0.0.0:4242/1.7/policy_import" "{\"POLICY_IMPORT\": {\"xml\": \"$JSON_DATA\"}}" '{"POLICY_IMPORT_RESULT": {"id": 2}}' "pass import policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_remove?id=2" '{"POLICY_REMOVE_RESULT": {}}' "pass remove policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_count" '{"POLICY_GET_POLICIES_COUNT_RESULT": {"size": 0}}' "pass get policies count"
+
+#dump and duplicate
+test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_create" '{"XSLT_POLICY_CREATE_RESULT": {"id": 11}}' "pass create new policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_dump?id=11" '{"POLICY_DUMP_RESULT": {"xml": "<?xml version=\"1.0\"?>\n<policy type=\"and\" name=\"New policy\"/>\n"}}' "pass dump policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_duplicate?id=11" '{"POLICY_DUPLICATE_RESULT": {"id": 12}}' "pass duplicate policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_remove?id=11" '{"POLICY_REMOVE_RESULT": {}}' "pass remove policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": [{"type": "and", "id": 12, "description": "", "parent_id": -1, "name": "New policy_copy"}]}}' "pass get policies"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_remove?id=12" '{"POLICY_REMOVE_RESULT": {}}' "pass remove policy"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_count" '{"POLICY_GET_POLICIES_COUNT_RESULT": {"size": 0}}' "pass get policies count"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_clear_policies" '{"POLICY_CLEAR_POLICIES_RESULT": {}}' "pass clear policies"
