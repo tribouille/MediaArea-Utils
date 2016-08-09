@@ -36,7 +36,7 @@ test_with_curl_data()
 #create XSLT policy (X2)
 #get policies and policies count
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_count" '{"POLICY_GET_POLICIES_COUNT_RESULT": {"size": 0}}' "pass get policies count"
-test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": []}}' "pass get policies"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {}}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_create" '{"XSLT_POLICY_CREATE_RESULT": {"id": 0}}' "pass create new policy"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get?id=0" '{"POLICY_GET_RESULT": {"policy": {"type": "and", "id": 0, "description": "", "parent_id": -1, "name": "New policy", "kind": "XSLT", "is_system": false}}}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": [{"type": "and", "id": 0, "description": "", "parent_id": -1, "name": "New policy", "kind": "XSLT", "is_system": false}]}}' "pass get policies"
@@ -53,12 +53,13 @@ test_with_curl "http://0.0.0.0:4242/1.7/policy_get_name?id=1" '{"POLICY_GET_NAME
 test_with_curl_data "http://0.0.0.0:4242/1.7/policy_change_name" '{"POLICY_CHANGE_NAME":{"id": 0, "name": "changed name", "description": "changed description"}}' '{"POLICY_CHANGE_NAME_RESULT": {}}' "pass change name"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_name?id=0" '{"POLICY_GET_NAME_RESULT": {"name": "changed name"}}' "pass get name"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": [{"type": "and", "parent_id": -1, "name": "changed name", "description": "changed description", "kind": "XSLT", "id": 0, "is_system": false},{"type": "and", "id": 1, "description": "", "parent_id": -1, "name": "New policy 1", "kind": "XSLT", "is_system": false}]}}' "pass get policies"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies?format=JSTREE" '{"POLICY_GET_POLICIES_RESULT": "{\"policiesTree\":[{\"id\":\"u_p\",\"text\":\"User policies\",\"type\":\"up\",\"state\":{\"opened\":true,\"selected\":true},\"children\":[{\"text\":\"changed name (and)\",\"type\":\"u\",\"data\":{\"policyId\":0,\"kind\":\"XSLT\",\"type\":\"and\",\"isEditable\":true,\"description\":\"changed description\"},\"children\":[]},{\"text\":\"New policy 1 (and)\",\"type\":\"u\",\"data\":{\"policyId\":1,\"kind\":\"XSLT\",\"type\":\"and\",\"isEditable\":true,\"description\":\"\"},\"children\":[]}]},{\"id\":\"s_p\",\"text\":\"System policies\",\"type\":\"sp\",\"state\":{\"opened\":true},\"children\":[]}]}"}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_names_list" '{"POLICY_GET_POLICIES_NAMES_LIST_RESULT": {"policies": [{"name": "changed name", "id": 0},{"id": 1, "name": "New policy 1"}]}}' "pass get policies_names_list"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies?id=1" '{"POLICY_GET_POLICIES_RESULT": {"policies": [{"type": "and", "id": 1, "description": "", "kind": "XSLT", "parent_id": -1, "name": "New policy 1", "is_system": false}]}}' "pass get policies"
 
 #clear policies
 test_with_curl "http://0.0.0.0:4242/1.7/policy_clear_policies" '{"POLICY_CLEAR_POLICIES_RESULT": {}}' "pass clear policies"
-test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {"policies": []}}' "pass get policies"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies" '{"POLICY_GET_POLICIES_RESULT": {}}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies_count" '{"POLICY_GET_POLICIES_COUNT_RESULT": {"size": 0}}' "pass get policies count"
 
 JSON_DATA=`cat ./data/sample_policy_1.xml | sed 's/"/\\\\"/g' | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n//g'`
@@ -87,6 +88,7 @@ test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_duplicate?policy_id=13&
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_get?policy_id=13&id=17" '{"XSLT_POLICY_RULE_GET_RESULT": {"rule": {"field": "", "id": 17, "occurrence": -1, "name": "New Rule_copy", "ope": "", "tracktype": "", "value": ""}}}' "pass get xslt policy rule"
 test_with_curl_data "http://0.0.0.0:4242/1.7/xslt_policy_rule_edit" "{\"XSLT_POLICY_RULE_EDIT\": {\"policy_id\":13, \"rule\": {\"field\": \"Format\", \"id\": 17, \"occurrence\": -1, \"name\": \"General Format is Matroska\", \"ope\": \"is_equal\", \"tracktype\": \"General\", \"value\": \"Matroska\"}}}" '{"XSLT_POLICY_RULE_EDIT_RESULT": {}}' "pass xslt policy rule edit"
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_get?policy_id=13&id=17" '{"XSLT_POLICY_RULE_GET_RESULT": {"rule": {"field": "Format", "id": 17, "occurrence": -1, "name": "General Format is Matroska", "ope": "is_equal", "tracktype": "General", "value": "Matroska"}}}' "pass get xslt policy rule"
+test_with_curl "http://0.0.0.0:4242/1.7/policy_get_policies?format=JSTREE" '{"POLICY_GET_POLICIES_RESULT": "{\"policiesTree\":[{\"id\":\"u_p\",\"text\":\"User policies\",\"type\":\"up\",\"state\":{\"opened\":true,\"selected\":true},\"children\":[{\"text\":\"New policy (and)\",\"type\":\"u\",\"data\":{\"policyId\":13,\"kind\":\"XSLT\",\"type\":\"and\",\"isEditable\":true,\"description\":\"\"},\"children\":[{\"text\":\"New Rule\",\"type\":\"r\",\"data\":{\"ruleId\":16,\"tracktype\":\"\",\"field\":\"\",\"occurrence\":-1,\"ope\":\"\",\"value\":\"}},{\"text\":\"General Format is Matroska\",\"type\":\"r\",\"data\":{\"ruleId\":17,\"tracktype\":\"General\",\"field\":\"Format\",\"occurrence\":-1,\"ope\":\"is_equal\",\"value\":\"Matroska}}]}]},{\"id\":\"s_p\",\"text\":\"System policies\",\"type\":\"sp\",\"state\":{\"opened\":true},\"children\":[]}]}"}' "pass get policies"
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_delete?policy_id=13&id=16" '{"XSLT_POLICY_RULE_DELETE_RESULT": {}}' "pass delete xslt policy rule"
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_delete?policy_id=13&id=17" '{"XSLT_POLICY_RULE_DELETE_RESULT": {}}' "pass delete xslt policy rule"
 test_with_curl "http://0.0.0.0:4242/1.7/xslt_policy_rule_delete?policy_id=13&id=16" '{"XSLT_POLICY_RULE_DELETE_RESULT": {"nok": {"error": "Policy rule does not exist"}}}' "pass delete unexisting xslt policy rule"
